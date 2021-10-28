@@ -8,16 +8,27 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-rl.question("What do you think of node.js? ", function (answer) {
-  fs.open("02-write-file/text.txt", "w", (err) => {
-    if (err) throw err;
-    console.log("File created");
-  });
-  fs.appendFile("text.txt", "answer", (err) => {
-    if (err) throw err;
-    console.log("Data has been added!");
-  });
-  console.log("Thank you for your valuable feedback:", answer);
+function question() {
+  rl.question("What do you think of node.js? ", (answer) => {
+    const logStream = fs.createWriteStream("02-write-file/text.txt", {
+      flags: "a",
+    });
+    if (answer === "exit") {
+      process.exit();
+    }
+    logStream.write(`${answer}\n`);
+    logStream.close();
 
-  rl.close();
-});
+    question();
+  });
+}
+
+const onExit = () => {
+  console.log("Your exit is a big mistake!:(");
+  process.exit();
+};
+// For MacOS
+process.on("exit", onExit);
+process.on("SIGINT", onExit);
+
+question();
