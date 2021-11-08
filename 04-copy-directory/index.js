@@ -1,24 +1,45 @@
 const fs = require("fs");
+
 const path = require("path");
-const dir = path.resolve(__dirname, "files");
-console.log(__dirname);
 
-fs.readdir(dir, { withFileTypes: true }, (err, files) => {
-  if (err) throw err;
-  fs.mkdir("04-copy-directory/files-copy", { recursive: true }, (err) => {
+const files = path.join(__dirname, "files");
+
+const filesCopy = path.join(__dirname, "filesCopy");
+
+function copy() {
+  fs.readdir(files, function (err, items) {
     if (err) throw err;
-  });
-  const dir2 = path.resolve(__dirname, "files-copy");
 
-  files.forEach((el) => {
-    fs.readFile(`${dir}/${el.name}`, "utf-8", (err, data) => {
-      if (err) throw err;
-      else {
-        fs.writeFile(`${dir2}/${el.name}`, data, "utf-8", (err) => {
+    items.forEach(function (item) {
+      fs.copyFile(
+        path.join(__dirname, "files", item),
+        path.join(__dirname, "filesCopy", item),
+        (err) => {
           if (err) throw err;
-          else console.log("ready");
-        });
-      }
+        }
+      );
     });
   });
+}
+
+fs.access(filesCopy, (err) => {
+  if (err) {
+    fs.mkdir(filesCopy, { recursive: true }, (err) => {
+      if (err) throw err;
+    });
+
+    copy();
+  } else {
+    fs.readdir(filesCopy, function (err, items) {
+      if (err) throw err;
+
+      items.forEach(function (item) {
+        fs.unlink(path.join(__dirname, "filesCopy", item), (err) => {
+          if (err) throw err;
+        });
+      });
+    });
+
+    copy();
+  }
 });
